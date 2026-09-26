@@ -1,0 +1,38 @@
+{
+    "name": "taskflow-pro",
+    "version": "1.0.0",
+    "description": "Dependency-aware task workflow and DAG scheduling engine",
+    "main": "src/server/server.js",
+    "scripts": {
+      "dev": "nodemon src/server/server.js",
+      "start": "node src/server/server.js",
+      "build": "vite build",
+      "db:setup": "node scripts/setup-db.js"
+    },
+    "keywords": [
+      "task-management",
+      "workflow",
+      "dag",
+      "dependencies",
+      "scheduling",
+      "react",
+      "express",
+      "postgresql",
+      "openai"
+    ],
+    "author": "Kratik Jain",
+    "license": "ISC",
+    "dependencies": {
+      "cors": "^2.8.6",
+      "dotenv": "^18.0.3",
+      "express": "^5.2.1",
+      "openai": "^7.23.0",
+      "pg": "^8.23.0",
+      "react": "^19.3.0",
+      "react-dom": "^19.3.0"
+    },
+    "devDependencies": {
+      "nodemon": "^3.1.14",
+      "vite": "^7.1.7"
+    }
+  }

@@ -1002,6 +1002,10 @@ app.put(
         });
       }
 
+      /* ========================================================
+         1. SELF DEPENDENCY CHECK
+         ======================================================== */
+
       if (
         prerequisiteIds.includes(
           taskId
@@ -1014,6 +1018,10 @@ app.put(
         });
       }
 
+      /* ========================================================
+         2. EXISTING TASK CHECK
+         ======================================================== */
+
       const existingIds =
         await getExistingTaskIds(
           prerequisiteIds
@@ -1025,7 +1033,9 @@ app.put(
             !existingIds.has(id)
         );
 
-      if (missingIds.length > 0) {
+      if (
+        missingIds.length > 0
+      ) {
         return res.status(422).json({
           error:
             'Invalid prerequisite',
@@ -1033,6 +1043,33 @@ app.put(
             `Prerequisite task ID${missingIds.length > 1 ? 's' : ''} ${missingIds.join(', ')} do not exist. Update rejected.`
         });
       }
+
+      /* ========================================================
+         3. CYCLE CHECK
+         
+         IMPORTANT:
+         Check the proposed graph BEFORE date validation.
+         Existing dependencies are not changed unless every
+         validation passes.
+         ======================================================== */
+
+      const createsCycle =
+        await wouldCreateCycleForReplacement(
+          taskId,
+          prerequisiteIds
+        );
+
+      if (createsCycle) {
+        return res.status(422).json({
+          error: 'Cycle detected',
+          message:
+            'Updating these prerequisites creates a circular loop. Update rejected.'
+        });
+      }
+
+      /* ========================================================
+         4. DATE VALIDATION
+         ======================================================== */
 
       if (
         prerequisiteIds.length > 0 &&
@@ -1054,13 +1091,16 @@ app.put(
         let maxPrereqEndDate =
           null;
 
-        let blockingPrereq = null;
+        let blockingPrereq =
+          null;
 
         for (
           const prerequisite
           of prereqDates.rows
         ) {
-          if (!prerequisite.end_date) {
+          if (
+            !prerequisite.end_date
+          ) {
             continue;
           }
 
@@ -1107,24 +1147,11 @@ app.put(
         }
       }
 
-      /*
-       * IMPORTANT:
-       * Validate the complete proposed graph BEFORE
-       * removing the existing dependencies.
-       */
-      const createsCycle =
-        await wouldCreateCycleForReplacement(
-          taskId,
-          prerequisiteIds
-        );
-
-      if (createsCycle) {
-        return res.status(422).json({
-          error: 'Cycle detected',
-          message:
-            'Updating these prerequisites creates a circular loop. Update rejected.'
-        });
-      }
+      /* ========================================================
+         5. REPLACE EXISTING DEPENDENCIES
+         
+         This happens ONLY after all validations pass.
+         ======================================================== */
 
       await db.query(
         `
@@ -1155,6 +1182,10 @@ app.put(
         );
       }
 
+      /* ========================================================
+         6. RECALCULATE DATES AND STATUS
+         ======================================================== */
+
       await propagateTaskDates(
         taskId
       );
@@ -1162,6 +1193,10 @@ app.put(
       await computeTaskStatus(
         taskId
       );
+
+      /* ========================================================
+         7. RETURN UPDATED TASK
+         ======================================================== */
 
       const updatedTask =
         await db.query(
@@ -1173,13 +1208,16 @@ app.put(
                 d.prerequisite_task_id
               )
               FILTER (
-                WHERE d.prerequisite_task_id IS NOT NULL
+                WHERE
+                  d.prerequisite_task_id
+                  IS NOT NULL
               ),
               '{}'
             ) AS prerequisite_ids
           FROM tasks t
           LEFT JOIN dependencies d
-            ON t.id = d.dependent_task_id
+            ON t.id =
+               d.dependent_task_id
           WHERE t.id = $1
           GROUP BY t.id
           `,
@@ -1192,6 +1230,7 @@ app.put(
         task:
           updatedTask.rows[0]
       });
+
     } catch (err) {
       console.error(
         'Update prerequisites error:',

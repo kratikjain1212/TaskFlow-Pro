@@ -308,7 +308,7 @@ You will also need:
 
 
 
-\- A PostgreSQL database
+\- A PostgreSQL database (Neon recommended for a quick cloud setup)
 
 \- An OpenAI API key for the AI dependency suggestion feature
 
@@ -359,6 +359,22 @@ Install all project dependencies:
 
 
 TaskFlow Pro uses PostgreSQL for persistent task and dependency storage.
+
+
+
+For the easiest cloud setup, you can use **Neon**, a hosted PostgreSQL platform:
+
+
+
+https://neon.com/
+
+
+
+Create a PostgreSQL project on Neon, copy the connection string provided by Neon, and use it as your `DATABASE_URL`.
+
+
+
+You can also use another PostgreSQL provider or a local PostgreSQL installation.
 
 
 

@@ -180,17 +180,17 @@ Install all project dependencies:
 
 TaskFlow Pro uses PostgreSQL for persistent task and dependency storage.
 
-Create or use a PostgreSQL database and obtain its connection string.
+For the easiest cloud setup, use **Neon**, a hosted PostgreSQL platform:
 
-The connection string normally follows this format:
+https://neon.com/
 
-    postgresql://USERNAME:PASSWORD@HOST:PORT/DATABASE
+Create a PostgreSQL project on Neon and copy the connection string provided by Neon.
 
-For a local PostgreSQL installation, an example can look like:
+Use this connection string as your `DATABASE_URL` in the `.env` file.
 
-    postgresql://postgres:your_password@localhost:5432/taskflow_pro
+You can also use another PostgreSQL provider or a local PostgreSQL installation.
 
-Do not copy the example credentials above. Replace them with your own PostgreSQL username, password, host, port, and database name.
+Do not commit your real PostgreSQL connection string, password, or any other secret to GitHub.
 
 ### 4. Configure Environment Variables
 
